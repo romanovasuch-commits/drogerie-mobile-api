@@ -1,4 +1,4 @@
-name: CI - Docker Compose Build
+name: CI - Docker Compose Integration
 
 on:
   push:
@@ -8,21 +8,59 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  integration:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Validate docker compose config
+      - name: Show Docker versions
         run: |
+          docker version
           docker compose version
-          docker compose config
 
-      - name: Build images
+      - name: Validate compose
         run: |
-          docker compose build --no-cache
+          docker compose -f docker-compose.yml config
+
+      - name: Build and start stack
+        run: |
+          docker compose -f docker-compose.yml up -d --build
+
+      - name: Wait for infrastructure health
+        run: |
+          # Wait up to ~90s for infra to become healthy
+          for i in $(seq 1 30); do
+            echo "Attempt $i..."
+            docker ps
+            # Fail fast if postgres/redis/rabbitmq missing
+            docker inspect -f '{{.State.Health.Status}}' postgres || exit 1
+            docker inspect -f '{{.State.Health.Status}}' redis || exit 1
+            docker inspect -f '{{.State.Health.Status}}' rabbitmq || exit 1
+
+            P=$(docker inspect -f '{{.State.Health.Status}}' postgres)
+            R=$(docker inspect -f '{{.State.Health.Status}}' redis)
+            Q=$(docker inspect -f '{{.State.Health.Status}}' rabbitmq)
+
+            if [ "$P" = "healthy" ] && [ "$R" = "healthy" ] && [ "$Q" = "healthy" ]; then
+              echo "Infrastructure is healthy "
+              exit 0
+            fi
+
+            sleep 3
+          done
+
+          echo "Infrastructure did not become healthy in time "
+          docker compose logs --no-color --tail=200
+          exit 1
+
+      - name: Show app logs (for visibility)
+        if: always()
+        run: |
+          docker compose logs --no-color --tail=200
+
+      - name: Shutdown
+        if: always()
+        run: |
+          docker compose down -v
