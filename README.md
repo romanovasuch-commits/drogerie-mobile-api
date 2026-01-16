@@ -1,5 +1,5 @@
 # Drogerie Mobile API — DevOps Test Project
-
+![CI](https://github.com/romanovasuch-commits/drogerie-mobile-api/actions/workflows/ci.yml/badge.svg)
 ## Overview
 This project demonstrates deployment and orchestration of a microservices-based backend using **Docker Compose**.  
 The main focus is **infrastructure reliability, service dependencies, healthchecks, and troubleshooting**, rather than application business logic.
