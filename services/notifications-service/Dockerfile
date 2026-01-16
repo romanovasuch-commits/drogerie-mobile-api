@@ -3,7 +3,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY services/notifications-service/package.json services/notifications-service/package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 COPY services/notifications-service/src ./src
 COPY libs ./libs

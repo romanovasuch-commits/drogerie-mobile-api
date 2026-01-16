@@ -3,7 +3,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY services/orders-service/package.json services/orders-service/package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 COPY services/orders-service/src ./src
 COPY libs ./libs

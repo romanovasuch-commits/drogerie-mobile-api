@@ -4,7 +4,7 @@ WORKDIR /app
 
 # deps
 COPY services/users-service/package.json services/users-service/package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # service code
 COPY services/users-service/src ./src

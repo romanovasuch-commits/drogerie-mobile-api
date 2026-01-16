@@ -3,7 +3,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY services/api-gateway/package.json services/api-gateway/package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 COPY services/api-gateway/src ./src
 COPY libs ./libs
